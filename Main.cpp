@@ -59,8 +59,7 @@ void showWinner(const char** winnerText) {
 };
 
 //Se encarga de toda la lógica
-void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** winnerText, Sound* rightPong, Sound* leftPong, Sound* rightWin, Sound* leftWin) {
-
+void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** winnerText, Sound* rightPong, Sound* leftPong, Sound* rightWin, Sound* leftWin, Texture2D* background,float *bgX,float *bgY,int *bgFrameCounter,int *timer) {
 	//Mueve la bola en X y Y según velocidad, normaliza con fps
 	(*ball).x += (*ball).speedX * GetFrameTime();
 	(*ball).y += (*ball).speedY * GetFrameTime();
@@ -123,7 +122,24 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 		(*winnerText) = "Left player wins";
 		PlaySound(*leftWin);
 	}
-
+	DrawTextureRec(*background, Rectangle{ *bgX,*bgY,500,500 }, Vector2{ 150,50 }, RAYWHITE);
+	(* timer)++;
+	if (( * timer) > 10) {
+		(* bgFrameCounter)++;
+		if ((( * bgFrameCounter) <= 28) && (( * bgFrameCounter) % 5 != 0)) {
+			(* bgX) += 500;
+		}
+		else if ((( * bgFrameCounter) <= 28) && (( * bgFrameCounter) % 5 == 0)) {
+			(* bgX) = 0;
+			(* bgY) += 500;
+		}
+		else if (( * bgFrameCounter) > 28) {
+			(* bgX) = 0;
+			(* bgY) = 0;
+			(* bgFrameCounter) = 0;
+		}
+		(* timer) = 0;
+	}
 	//Muestra el ganador
 	if (winnerText) {
 		showWinner(winnerText);
@@ -142,14 +158,17 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 
 
 
-void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char* *winnerText, Sound *rightPong, Sound *leftPong,Sound *rightWin,Sound *leftWin, Music *bgm) {
+void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char* *winnerText, Sound *rightPong, Sound *leftPong,Sound *rightWin,Sound *leftWin, Music *bgm, Texture2D *background) {
+	float bgX = 0;
+	float bgY = 0;
+	int bgFrameCounter = 0;
+	int timer = 0;
 	PlayMusicStream(*bgm);
 	//Loop del juego, se repite mientras la ventana esté abierta
 	while (!WindowShouldClose()) {
 		UpdateMusicStream(*bgm);
-		std::cout << GetMusicTimePlayed(*bgm) << std::endl;
 		//Invoca lógica del juego
-		doLogic(ball, leftPaddle, rightPaddle, winnerText, rightPong, leftPong,rightWin,leftWin);
+		doLogic(ball, leftPaddle, rightPaddle, winnerText, rightPong, leftPong,rightWin,leftWin,background,&bgX,&bgY,&bgFrameCounter,&timer);
 		//Inicializa la pantalla, dibuja elementos
 		BeginDrawing();
 		ClearBackground(BLACK);
@@ -177,7 +196,7 @@ int main() {
 	SetSoundVolume(leftWin, 0.6f);
 	Music bgm = LoadMusicStream("Resources/Sounds/BGM.ogg");
 	SetMusicVolume(bgm, 0.7f);
-	std::cout << GetMusicTimeLength(bgm) << std::endl;
+	Texture2D background = LoadTexture("Resources/Images/Background.png");
 	Ball ball;
 	Paddle leftPaddle;
 	Paddle rightPaddle;
@@ -185,8 +204,9 @@ int main() {
 	initComponents(&ball, &leftPaddle, &rightPaddle);
 	const char* winnerText = nullptr;
 	//Empieza el juego
-	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong,&rightWin,&leftWin, &bgm);
+	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong,&rightWin,&leftWin, &bgm, &background);
 	//Desocupa la memoria cuando la ventana se cierra
+	UnloadTexture(background);
 	UnloadMusicStream(bgm);
 	UnloadSound(rightPong);
 	UnloadSound(leftPong);
