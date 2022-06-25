@@ -12,7 +12,8 @@ struct Ball {
 		Ball::x = x;
 		Ball::y = y;
 		Ball::radius = radius;
-		Ball::speedX = speedX;
+		//Multiplica la velocidad por un número al azar entre {-1,1} para determinar la dirección de la bola al empezar
+		Ball::speedX = (float)(speedX*-pow(-1,rand()%2));
 		Ball::speedY = speedY;
 	}
 	//Dibuja el cículo en pantalla
@@ -76,16 +77,25 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 
 	//Controles de los palos
 	if (IsKeyDown(KEY_W)) {
-		(*leftPaddle).y -= (*leftPaddle).speed * GetFrameTime();
+		if (!(( * leftPaddle).y<0+((*leftPaddle).height)/2)) {
+			(*leftPaddle).y -= (*leftPaddle).speed * GetFrameTime();
+		}
+		
 	}
 	if (IsKeyDown(KEY_S)) {
-		(*leftPaddle).y += (*leftPaddle).speed * GetFrameTime();
+		if (!((*leftPaddle).y > GetScreenHeight()-((*leftPaddle).height)/2)) {
+			(*leftPaddle).y += (*leftPaddle).speed * GetFrameTime();
+		}
 	}
 	if (IsKeyDown(KEY_UP)) {
-		(*rightPaddle).y -= (*rightPaddle).speed * GetFrameTime();
+		if (!((*rightPaddle).y < 0 + ((*rightPaddle).height) / 2)) {
+			(*rightPaddle).y -= (*rightPaddle).speed * GetFrameTime();
+		}
 	}
 	if (IsKeyDown(KEY_DOWN)) {
-		(*rightPaddle).y += (*rightPaddle).speed * GetFrameTime();
+		if (!((*rightPaddle).y > GetScreenHeight() - ((*rightPaddle).height) / 2)) {
+			(*rightPaddle).y += (*rightPaddle).speed * GetFrameTime();
+		}
 	}
 
 	//Controla colisiones ente la bola y los palos, reproduce sonido de colisión
@@ -120,9 +130,11 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 	}
 
 	//Reinicia el juego
-	if (winnerText && IsKeyPressed(KEY_SPACE)) {
+	if (*winnerText && IsKeyPressed(KEY_SPACE)) {
 		initComponents(ball, leftPaddle, rightPaddle);
 		(*winnerText) = nullptr;
+		StopSound(*rightWin);
+		StopSound(*leftWin);
 	}
 
 
