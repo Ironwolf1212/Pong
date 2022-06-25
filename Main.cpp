@@ -101,7 +101,7 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 	//Controla colisiones ente la bola y los palos, reproduce sonido de colisión
 	if (CheckCollisionCircleRec(Vector2{ (*ball).x,(*ball).y }, (*ball).radius, (*leftPaddle).getRec())) {
 		if ((*ball).speedX < 0) {
-			(*ball).speedX *= -1.1f;
+			(*ball).speedX *= -1.06f;
 			(*ball).speedY = (((*ball).y - (*leftPaddle).y) / ((*leftPaddle).height / 2)) * (*ball).speedX;
 		}
 		PlaySound(*rightPong);
@@ -109,7 +109,7 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 	}
 	if (CheckCollisionCircleRec(Vector2{ (*ball).x,(*ball).y }, (*ball).radius, (*rightPaddle).getRec())) {
 		if ((*ball).speedX > 0) {
-			(*ball).speedX *= -1.1f;
+			(*ball).speedX *= -1.06f;
 			(*ball).speedY = (((*ball).y - (*rightPaddle).y) / ((*rightPaddle).height / 2)) * -(*ball).speedX;
 		}
 		PlaySound(*leftPong);
@@ -142,9 +142,12 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 
 
 
-void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char* *winnerText, Sound *rightPong, Sound *leftPong,Sound *rightWin,Sound *leftWin) {
+void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char* *winnerText, Sound *rightPong, Sound *leftPong,Sound *rightWin,Sound *leftWin, Music *bgm) {
+	PlayMusicStream(*bgm);
 	//Loop del juego, se repite mientras la ventana esté abierta
 	while (!WindowShouldClose()) {
+		UpdateMusicStream(*bgm);
+		std::cout << GetMusicTimePlayed(*bgm) << std::endl;
 		//Invoca lógica del juego
 		doLogic(ball, leftPaddle, rightPaddle, winnerText, rightPong, leftPong,rightWin,leftWin);
 		//Inicializa la pantalla, dibuja elementos
@@ -172,6 +175,9 @@ int main() {
 	SetSoundVolume(rightWin, 0.6f);
 	Sound leftWin = LoadSound("Resources/Sounds/LeftWin.ogg");
 	SetSoundVolume(leftWin, 0.6f);
+	Music bgm = LoadMusicStream("Resources/Sounds/BGM.ogg");
+	SetMusicVolume(bgm, 0.7f);
+	std::cout << GetMusicTimeLength(bgm) << std::endl;
 	Ball ball;
 	Paddle leftPaddle;
 	Paddle rightPaddle;
@@ -179,8 +185,9 @@ int main() {
 	initComponents(&ball, &leftPaddle, &rightPaddle);
 	const char* winnerText = nullptr;
 	//Empieza el juego
-	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong,&rightWin,&leftWin);
+	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong,&rightWin,&leftWin, &bgm);
 	//Desocupa la memoria cuando la ventana se cierra
+	UnloadMusicStream(bgm);
 	UnloadSound(rightPong);
 	UnloadSound(leftPong);
 	CloseAudioDevice();
