@@ -58,7 +58,7 @@ void showWinner(const char** winnerText) {
 };
 
 //Se encarga de toda la lógica
-void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** winnerText, Sound* rightPong, Sound* leftPong) {
+void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** winnerText, Sound* rightPong, Sound* leftPong, Sound* rightWin, Sound* leftWin) {
 
 	//Mueve la bola en X y Y según velocidad, normaliza con fps
 	(*ball).x += (*ball).speedX * GetFrameTime();
@@ -104,13 +104,18 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 		}
 		PlaySound(*leftPong);
 	}
-	//Se encarga de mostrar el texto corecto del ganador
-	if ((*ball).x < 0) {
+	//Asigna el ganador y reproduce un sonido
+	if ((*ball).x < 0 && *winnerText==nullptr) {
 		(*winnerText) = "Right player wins";
-		showWinner(winnerText);
+		PlaySound(*rightWin);
 	}
-	if ((*ball).x > GetScreenWidth()) {
+	if ((*ball).x > GetScreenWidth() && *winnerText==nullptr) {
 		(*winnerText) = "Left player wins";
+		PlaySound(*leftWin);
+	}
+
+	//Muestra el ganador
+	if (winnerText) {
 		showWinner(winnerText);
 	}
 
@@ -120,15 +125,16 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 		(*winnerText) = nullptr;
 	}
 
+
 }
 
 
 
-void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char* *winnerText, Sound *rightPong, Sound *leftPong) {
+void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char* *winnerText, Sound *rightPong, Sound *leftPong,Sound *rightWin,Sound *leftWin) {
 	//Loop del juego, se repite mientras la ventana esté abierta
 	while (!WindowShouldClose()) {
 		//Invoca lógica del juego
-		doLogic(ball, leftPaddle, rightPaddle, winnerText, rightPong, leftPong);
+		doLogic(ball, leftPaddle, rightPaddle, winnerText, rightPong, leftPong,rightWin,leftWin);
 		//Inicializa la pantalla, dibuja elementos
 		BeginDrawing();
 		ClearBackground(BLACK);
@@ -150,6 +156,10 @@ int main() {
 	//Se crean los objetos
 	Sound rightPong = LoadSound("Resources/Sounds/RightPong.ogg");
 	Sound leftPong = LoadSound("Resources/Sounds/LeftPong.ogg");
+	Sound rightWin = LoadSound("Resources/Sounds/RightWin.ogg");
+	SetSoundVolume(rightWin, 0.6f);
+	Sound leftWin = LoadSound("Resources/Sounds/LeftWin.ogg");
+	SetSoundVolume(leftWin, 0.6f);
 	Ball ball;
 	Paddle leftPaddle;
 	Paddle rightPaddle;
@@ -157,7 +167,7 @@ int main() {
 	initComponents(&ball, &leftPaddle, &rightPaddle);
 	const char* winnerText = nullptr;
 	//Empieza el juego
-	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong);
+	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong,&rightWin,&leftWin);
 	//Desocupa la memoria cuando la ventana se cierra
 	UnloadSound(rightPong);
 	UnloadSound(leftPong);
