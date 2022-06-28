@@ -4,52 +4,83 @@
 
 
 struct Ball {
-	float x=0, y=0;
-	float speedX=0, speedY=0;
-	float radius=0;
+	float x = 0, y = 0;
+	float speedX = 0, speedY = 0;
+	float radius = 0;
 
 	void initialize(float x, float y, float speedX, float speedY, float radius) {
 		Ball::x = x;
 		Ball::y = y;
 		Ball::radius = radius;
 		//Multiplica la velocidad por un número al azar entre {-1,1} para determinar la dirección de la bola al empezar
-		Ball::speedX = (float)(speedX*-pow(-1,rand()%2));
+		Ball::speedX = (float)(speedX * -pow(-1, rand() % 2));
 		Ball::speedY = speedY;
 	}
 	//Dibuja el cículo en pantalla
 	void Draw() {
-		DrawCircle((int)x,(int)y,radius, WHITE);
+		DrawCircle((int)x, (int)y, radius, WHITE);
 	}
 };
 
 struct Paddle {
-	float x=0, y=0;
-	float speed=0;
-	float width=0, height=0;
+	float x = 0, y = 0;
+	float speed = 0;
+	float width = 0, height = 0;
 
-	void initialize(float x, float y,float speed, float width,float height) {
-			Paddle::x = x;
-			Paddle::y = y;
-			Paddle::width = width;
-			Paddle::height = height;
-			Paddle::speed = speed;
+	void initialize(float x, float y, float speed, float width, float height) {
+		Paddle::x = x;
+		Paddle::y = y;
+		Paddle::width = width;
+		Paddle::height = height;
+		Paddle::speed = speed;
 	}
 	//Obtiene rectángulo de contorno
 	Rectangle getRec() {
-		return Rectangle{x - width / 2, y - height / 2, 10, 100};
+		return Rectangle{ x - width / 2, y - height / 2, 10, 100 };
 	}
 
 	//Dibuja el palo
 	void Draw() {
-		DrawRectangle((int)(x-width/2), (int)(y-height/2), 10, 100, WHITE);
+		DrawRectangle((int)(x - width / 2), (int)(y - height / 2), 10, 100, WHITE);
 	}
 };
 
+struct Button {
+	float x, y;
+	float width, height;
+	float roundness;
+	int segments, lineThickness;
+	Color color;
+	const char* text; Color textColor; Font textFont; int textSize;
+	Button(float posX, float posY, const char* text, Font textFont,int textSize, Color textColor,float roundness, int segments, int lineThick, Color color) {
+		Button::textFont = textFont;
+		Button::textSize = textSize;
+		Button::width = MeasureTextEx(textFont,text,textSize,2).x+20;
+		Button::height = MeasureTextEx(textFont, text, textSize, 2).y+20;
+		x = posX-width/2;
+		y = posY-height/2;
+		Button::roundness = roundness;
+		Button::segments = segments;
+		Button::lineThickness = lineThick;
+		Button::text = text;
+		Button::textColor = textColor;
+		Button::color = color;
+	}
+	void DrawButtonText() {
+		DrawRectangleRoundedLines(Rectangle{x,y,width,height},roundness,segments,lineThickness,color);
+		DrawTextEx(textFont, text, Vector2{x+10,y+10}, textSize, 2, textColor);
+	}
+
+	void changeColor(Color buttonColor, Color textColor) {
+		color = buttonColor;
+		Button::textColor = textColor;
+	}
+};
 //Inicializa las variables para empezar un nuevo juego
-void initComponents(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle) {
+void initComponents(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle) {
 	(*ball).initialize(GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f, 300, 300, 5);
-	(* leftPaddle).initialize(50, (float)GetScreenHeight() / 2, 500, 10, 100);
-	(* rightPaddle).initialize((float)GetScreenWidth() - 50, (float)GetScreenHeight() / 2, 500, 10, 100);
+	(*leftPaddle).initialize(50, (float)GetScreenHeight() / 2, 500, 10, 100);
+	(*rightPaddle).initialize((float)GetScreenWidth() - 50, (float)GetScreenHeight() / 2, 500, 10, 100);
 }
 
 //Renderiza el texto del ganador
@@ -59,7 +90,7 @@ void showWinner(const char** winnerText) {
 };
 
 //Se encarga de toda la lógica
-void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** winnerText, Sound* rightPong, Sound* leftPong, Sound* rightWin, Sound* leftWin, Texture2D* background,float *bgX,float *bgY,int *bgFrameCounter,int *timer) {
+void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** winnerText, Sound* rightPong, Sound* leftPong, Sound* rightWin, Sound* leftWin, Texture2D* background, float* bgX, float* bgY, int* bgFrameCounter, int* timer) {
 	//Mueve la bola en X y Y según velocidad, normaliza con fps
 	(*ball).x += (*ball).speedX * GetFrameTime();
 	(*ball).y += (*ball).speedY * GetFrameTime();
@@ -76,13 +107,13 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 
 	//Controles de los palos
 	if (IsKeyDown(KEY_W)) {
-		if (!(( * leftPaddle).y<0+((*leftPaddle).height)/2)) {
+		if (!((*leftPaddle).y < 0 + ((*leftPaddle).height) / 2)) {
 			(*leftPaddle).y -= (*leftPaddle).speed * GetFrameTime();
 		}
-		
+
 	}
 	if (IsKeyDown(KEY_S)) {
-		if (!((*leftPaddle).y > GetScreenHeight()-((*leftPaddle).height)/2)) {
+		if (!((*leftPaddle).y > GetScreenHeight() - ((*leftPaddle).height) / 2)) {
 			(*leftPaddle).y += (*leftPaddle).speed * GetFrameTime();
 		}
 	}
@@ -114,31 +145,31 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 		PlaySound(*leftPong);
 	}
 	//Asigna el ganador y reproduce un sonido
-	if ((*ball).x < 0 && *winnerText==nullptr) {
+	if ((*ball).x < 0 && *winnerText == nullptr) {
 		(*winnerText) = "Right player wins";
 		PlaySound(*rightWin);
 	}
-	if ((*ball).x > GetScreenWidth() && *winnerText==nullptr) {
+	if ((*ball).x > GetScreenWidth() && *winnerText == nullptr) {
 		(*winnerText) = "Left player wins";
 		PlaySound(*leftWin);
 	}
 	DrawTextureRec(*background, Rectangle{ *bgX,*bgY,500,500 }, Vector2{ 150,50 }, RAYWHITE);
-	(* timer)++;
-	if (( * timer) > 10) {
-		(* bgFrameCounter)++;
-		if ((( * bgFrameCounter) <= 28) && (( * bgFrameCounter) % 5 != 0)) {
-			(* bgX) += 500;
+	(*timer)++;
+	if ((*timer) > 10) {
+		(*bgFrameCounter)++;
+		if (((*bgFrameCounter) <= 28) && ((*bgFrameCounter) % 5 != 0)) {
+			(*bgX) += 500;
 		}
-		else if ((( * bgFrameCounter) <= 28) && (( * bgFrameCounter) % 5 == 0)) {
-			(* bgX) = 0;
-			(* bgY) += 500;
+		else if (((*bgFrameCounter) <= 28) && ((*bgFrameCounter) % 5 == 0)) {
+			(*bgX) = 0;
+			(*bgY) += 500;
 		}
-		else if (( * bgFrameCounter) > 28) {
-			(* bgX) = 0;
-			(* bgY) = 0;
-			(* bgFrameCounter) = 0;
+		else if ((*bgFrameCounter) > 28) {
+			(*bgX) = 0;
+			(*bgY) = 0;
+			(*bgFrameCounter) = 0;
 		}
-		(* timer) = 0;
+		(*timer) = 0;
 	}
 	//Muestra el ganador
 	if (winnerText) {
@@ -158,7 +189,7 @@ void doLogic(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** w
 
 
 
-void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char* *winnerText, Sound *rightPong, Sound *leftPong,Sound *rightWin,Sound *leftWin, Music *bgm, Texture2D *background) {
+void renderGame(Ball* ball, Paddle* leftPaddle, Paddle* rightPaddle, const char** winnerText, Sound* rightPong, Sound* leftPong, Sound* rightWin, Sound* leftWin, Music* bgm, Texture2D* background) {
 	float bgX = 0;
 	float bgY = 0;
 	int bgFrameCounter = 0;
@@ -168,7 +199,7 @@ void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char*
 	while (!WindowShouldClose()) {
 		UpdateMusicStream(*bgm);
 		//Invoca lógica del juego
-		doLogic(ball, leftPaddle, rightPaddle, winnerText, rightPong, leftPong,rightWin,leftWin,background,&bgX,&bgY,&bgFrameCounter,&timer);
+		doLogic(ball, leftPaddle, rightPaddle, winnerText, rightPong, leftPong, rightWin, leftWin, background, &bgX, &bgY, &bgFrameCounter, &timer);
 		//Inicializa la pantalla, dibuja elementos
 		BeginDrawing();
 		ClearBackground(BLACK);
@@ -180,6 +211,48 @@ void renderGame(Ball *ball, Paddle *leftPaddle, Paddle *rightPaddle, const char*
 		EndDrawing();
 	}
 }
+void menuLogic(Button* playButton,int* chosenGame) {
+	bool mouseOnPlay = false;
+	if ((GetMouseX() >= (int)(*playButton).x)&&(GetMouseX() <= (int)((*playButton).width+(*playButton).x))&&(GetMouseY()>=(int)((*playButton).y))&&(GetMouseY() <= (int)((*playButton).height + (*playButton).y))) {
+		mouseOnPlay = true;
+	}
+	else {
+		mouseOnPlay = false;
+	}
+	if (mouseOnPlay)
+	{
+		(*playButton).changeColor(YELLOW, YELLOW);
+	}
+	else {
+		(*playButton).changeColor(WHITE, WHITE);
+	}
+	if ((mouseOnPlay) && (IsMouseButtonDown(0))) {
+		(*chosenGame) = 1;
+	}
+}
+void renderMenu() {
+	Font titleFont = LoadFontEx("Resources/Fonts/Freehand521.ttf",150,0,0);
+	Font buttonFont = LoadFontEx("Resources/Fonts/vgafix.ttf", 55, 0, 0);
+	const char* titleTextContent = "Arcade Game";
+	Vector2 titleTextSize = MeasureTextEx(titleFont, titleTextContent, 150, 0);
+	float titleTextWidth = titleTextSize.x;
+	Button play(GetScreenWidth()/2,(GetScreenHeight()/2)+50,"Play Pong",buttonFont,50,RAYWHITE,0,0,1,WHITE);
+	int chosenGame = 0;
+	//std::cout << textWidth << std::endl;
+	/*switch (chosenGame)
+	{
+	default:
+		break;
+	}*/
+	while ((!WindowShouldClose())&&(chosenGame==0)) {
+		menuLogic(&play,&chosenGame);
+		BeginDrawing();
+		ClearBackground(BLACK);
+		DrawTextEx(titleFont, titleTextContent, Vector2{ (GetScreenWidth() - titleTextWidth)/2,100}, 150, 0, RAYWHITE);
+		play.DrawButtonText();
+		EndDrawing();
+	};
+}
 int main() {
 	//Inicializa el audio
 	InitAudioDevice();
@@ -187,6 +260,7 @@ int main() {
 	InitWindow(800, 600, "Pong");
 	//Normaliza los fps
 	SetWindowState(FLAG_VSYNC_HINT);
+	renderMenu();
 	//Se crean los objetos
 	Sound rightPong = LoadSound("Resources/Sounds/RightPong.ogg");
 	Sound leftPong = LoadSound("Resources/Sounds/LeftPong.ogg");
@@ -204,7 +278,7 @@ int main() {
 	initComponents(&ball, &leftPaddle, &rightPaddle);
 	const char* winnerText = nullptr;
 	//Empieza el juego
-	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong,&rightWin,&leftWin, &bgm, &background);
+	renderGame(&ball, &leftPaddle, &rightPaddle, &winnerText, &rightPong, &leftPong, &rightWin, &leftWin, &bgm, &background);
 	//Desocupa la memoria cuando la ventana se cierra
 	UnloadTexture(background);
 	UnloadMusicStream(bgm);
