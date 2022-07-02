@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "raylib.h"
+#include "Resources/libs/raygui.h"
 #include "src/Button.h"
 #include "src/Ball.h"
 #include "src/Paddle.h"
@@ -161,6 +162,7 @@ void menuLogic(Button* playButton,int* chosenGame) {
 		(*playButton).changeColor(WHITE, WHITE);
 	}
 	if ((mouseOnPlay) && (IsMouseButtonDown(0))) {
+		
 		(*chosenGame) = 1;
 	}
 }
@@ -173,6 +175,7 @@ void renderMenu() {
 	Vector2 titleTextSize = MeasureTextEx(titleFont, titleTextContent, 150, 0);
 	float titleTextWidth = titleTextSize.x;
 	Button play((float)GetScreenWidth()/2,(float)(GetScreenHeight()/2)+50,"Play Pong",buttonFont,50,RAYWHITE,0,0,1,WHITE);
+	//GuiComboBox(Rectangle{ (float)GetScreenWidth() / 2,(float)GetScreenHeight() / 2,200,100 }, "Pija", 0);
 	int chosenGame = 0;
 	//std::cout << textWidth << std::endl;
 	
